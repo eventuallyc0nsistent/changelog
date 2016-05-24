@@ -1,0 +1,10 @@
+venv/*
+*.pyc
+.editorconfig
+.coverage
+venv/
+dist/
+build/
+*.egg-info/
+docs/build
+.coveragerc
