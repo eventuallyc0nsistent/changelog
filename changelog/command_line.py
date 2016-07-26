@@ -16,18 +16,24 @@ def print_logs(new_version, logs, issue_id_pattern, issue_url_prefix):
     print '###{0} ({1})'.format(new_version, date_today)
     for item in logs:
         title = item['subject']
-        issues = re.findall(issue_id_pattern, title + item['body'], re.IGNORECASE)
-        if issues:
-            for issue in issues:
-                if 'Merge pull' in title:
-                    issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
-                    unassigned_issue_ids.extend(issues)
-                    continue
-                elif 'Merge branch' in title:
-                    issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
-                    unassigned_issue_ids.extend(issues)
-                    continue
-                print '- {0} ([{1}]({2}{1}))'.format(title, issue, issue_url_prefix)
+        if issue_id_pattern:
+            issues = re.findall(issue_id_pattern, title + item['body'], re.IGNORECASE)
+            if issues:
+                for issue in issues:
+                    if 'Merge pull' in title:
+                        issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
+                        unassigned_issue_ids.extend(issues)
+                        continue
+                    elif 'Merge branch' in title:
+                        issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
+                        unassigned_issue_ids.extend(issues)
+                        continue
+
+                    if issue_url_prefix:
+                        print '- {0} ([{1}]({2}{1}))'.format(title, issue, 
+                                                             issue_url_prefix)
+                    else:
+                        print '- {0} ({1})'.format(title, issue)
         else:
             if ('Merge branch' in title) or ('Merge pull' in title):
                 continue
@@ -59,33 +65,34 @@ def run_command(from_, to, new_version, issue_id_pattern, issue_url_prefix):
 
 def init_argparser():
     parser = argparse.ArgumentParser(
-                description='Publish CHANGELOG from git commits'
+        description='Publish suggested CHANGELOG from git commits'
     )
     parser.add_argument(
-            '-s', '--start',
-            type=str, required=True,
-            help='Enter commit/tag/branch you want CHANGELOG from'
+        '-s', '--start',
+        type=str, required=True,
+        help='Enter commit/tag/branch you want CHANGELOG from'
     )
     parser.add_argument(
-            '-e', '--end',
-            type=str,
-            help='Enter commit/tag/branch you want CHANGELOG till. \
-                  Default value is set to master'
+        '-e', '--end',
+        type=str,
+        help=('Enter commit/tag/branch you want CHANGELOG to. '
+              'Default value is set to `master` branch')
     )
     parser.add_argument(
-            '-v', '--version',
-            type=str, required=True,
-            help='Enter new version number for the CHANGELOG'
+        '-v', '--version',
+        type=str, required=True,
+        help='Enter new version number for the CHANGELOG'
     )
     parser.add_argument(
-            '-i', '--issue',
-            type=str,
-            help='Enter issue ID pattern'
+        '-i', '--issue',
+        type=str,
+        help='Enter issue ID pattern. It can be a regex that you can look for'
     )
     parser.add_argument(
         '-u', '--issue-url-prefix',
         type=str,
-        help='Enter issue URL prefix. If your issues are on github then it could be https://github.com/[username]/[repository-name]/issues/[issue-number]'
+        help=('Enter issue URL prefix. If your issues are on github then it could be '
+              'https://github.com/<username>/<repository-name>/issues/<issue-number>')
     )
     return parser.parse_args()
 
@@ -100,9 +107,6 @@ def main():
     # set defaults
     if not to_:
         to_ = 'master'
-
-    if not issue_id_pattern:
-        issue_id_pattern = r'#\d+'
 
     run_command(from_, to_, new_version, issue_id_pattern, issue_url_prefix)
 
