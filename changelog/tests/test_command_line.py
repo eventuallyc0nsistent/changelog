@@ -2,9 +2,69 @@ from unittest import TestCase
 from mock import patch, Mock
 from subprocess import PIPE
 from changelog.command_line import (init_argparser, git_log, GIT_FIELDS, 
-                                    parse_logs, print_logs)
+                                    parse_logs, print_lines)
 
 class TestCmdLine(TestCase):
+
+    def setUp(self):
+        self.logs = [
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Mon Jul 28 22:30:30 2016 -0400',
+                'id': 'c659536',
+                'subject': 'Merge branch "master" into CLOG-6'
+            },
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Mon Jul 28 23:30:30 2016 -0400',
+                'id': 'c659536',
+                'subject': 'Merge pull request #123 from kirankoduru/CLOG-6'
+            },
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Mon Jul 25 23:30:30 2016 -0400',
+                'id': 'c659536',
+                'subject': 'Log 5'
+            },
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Fri Jul 15 14:27:35 2016 -0400',
+                'id': '75863b5',
+                'subject': 'Log 4'
+            },
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Fri Jul 15 14:20:52 2016 -0400',
+                'id': '5054232',
+                'subject': 'Log 3'
+            },
+            {
+                'body': '',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Mon May 23 23:59:43 2016 -0400',
+                'id': '0b94b81',
+                'subject': 'Log 2'
+            },
+            {
+                'body': 'Log 1 body CLOG-2\n',
+                'author_email': 'email',
+                'author_name': 'Author',
+                'date': 'Mon May 23 02:19:27 2016 -0400',
+                'id': '5a03e2d',
+                'subject': 'Log 1'
+            }
+        ]
 
     def test_parse_args(self):
         '''
@@ -115,47 +175,62 @@ class TestCmdLine(TestCase):
         parsed_logs = parse_logs(logs, GIT_FIELDS)
         self.assertEquals(parsed_logs, expected)
 
-    def test_print_logs(self):
-        logs = [
-            {
-                'body': '',
-                'author_email': 'email',
-                'author_name': 'Author',
-                'date': 'Mon Jul 25 23:30:30 2016 -0400',
-                'id': 'c659536',
-                'subject': 'Log 5'
-            },
-            {
-                'body': '',
-                'author_email': 'email',
-                'author_name': 'Author',
-                'date': 'Fri Jul 15 14:27:35 2016 -0400',
-                'id': '75863b5',
-                'subject': 'Log 4'
-            },
-            {
-                'body': '',
-                'author_email': 'email',
-                'author_name': 'Author',
-                'date': 'Fri Jul 15 14:20:52 2016 -0400',
-                'id': '5054232',
-                'subject': 'Log 3'
-            },
-            {
-                'body': '',
-                'author_email': 'email',
-                'author_name': 'Author',
-                'date': 'Mon May 23 23:59:43 2016 -0400',
-                'id': '0b94b81',
-                'subject': 'Log 2'
-            },
-            {
-                'body': 'Log 2 body\n',
-                'author_email': 'email',
-                'author_name': 'Author',
-                'date': 'Mon May 23 02:19:27 2016 -0400',
-                'id': '5a03e2d',
-                'subject': 'Log 1'
-            }
-        ]
-        print_logs('v1.0.0', logs, 'CLOG-/d+', 'http://changelog/#')
+    def test_print_lines_format(self):
+        '''
+        When `issue_url_prefix` exists
+        '''
+        lines = print_lines(new_version='v1.0.0', 
+                            logs=self.logs,
+                            issue_id_pattern=r'CLOG-\d+',
+                            issue_url_prefix='http://changelog/#')
+        expected = '''v1.0.0 (22 Aug 2016)
+--------------------
+- Merge branch "master" into CLOG-6
+- Merge pull request #123 from kirankoduru/CLOG-6
+- Log 5
+- Log 4
+- Log 3
+- Log 2
+- Log 1 ([CLOG-2](http://changelog/#CLOG-2))
+- Log 1
+Log 1 body CLOG-2
+
+Unassigned Issue IDs
+- CLOG-6'''
+        self.assertEquals(expected, '\n'.join(lines))
+
+    def test_no_issue_url_prefix(self):
+        lines = print_lines(new_version='v1.0.0',
+                            logs=self.logs,
+                            issue_id_pattern=r'CLOG-\d+',
+                            issue_url_prefix=None)
+        expected = '''v1.0.0 (22 Aug 2016)
+--------------------
+- Merge branch "master" into CLOG-6
+- Merge pull request #123 from kirankoduru/CLOG-6
+- Log 5
+- Log 4
+- Log 3
+- Log 2
+- Log 1 (CLOG-2)
+- Log 1
+Log 1 body CLOG-2
+
+Unassigned Issue IDs
+- CLOG-6'''
+        self.assertEquals(expected, '\n'.join(lines))
+
+    def test_no_issue_id_pattern(self):
+        lines = print_lines(new_version='v1.0.0',
+                            logs=self.logs,
+                            issue_id_pattern=None,
+                            issue_url_prefix=None)
+        expected = '''v1.0.0 (22 Aug 2016)
+--------------------
+- Log 5
+- Log 4
+- Log 3
+- Log 2
+- Log 1
+Log 1 body CLOG-2'''
+        self.assertEquals(expected, '\n'.join(lines))

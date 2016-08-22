@@ -23,44 +23,54 @@ def parse_logs(logs, fields):
     return logs
 
 
-def print_logs(new_version, logs, issue_id_pattern, issue_url_prefix):
+def print_lines(new_version, logs, issue_id_pattern, issue_url_prefix):
+    lines = []
     unassigned_issue_ids = []
     date_today = datetime.now().strftime('%d %b %Y')
-    print '###{0} ({1})'.format(new_version, date_today)
+    
+    version_title = '{0} ({1})'.format(new_version, date_today)
+    lines.append(version_title)
+    lines.append('-'*len(version_title))
+
     for item in logs:
         title = item['subject']
         if issue_id_pattern:
             issues = re.findall(issue_id_pattern, title + item['body'], re.IGNORECASE)
+
             if issues:
                 for issue in issues:
                     if 'Merge pull' in title:
-                        issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
+                        issues = re.findall(issue_id_pattern, title, 
+                                            re.IGNORECASE)
                         unassigned_issue_ids.extend(issues)
                         continue
                     elif 'Merge branch' in title:
-                        issues = re.findall(issue_id_pattern, title, re.IGNORECASE)
+                        issues = re.findall(issue_id_pattern, title, 
+                                            re.IGNORECASE)
                         unassigned_issue_ids.extend(issues)
                         continue
 
                     if issue_url_prefix:
-                        print '- {0} ([{1}]({2}{1}))'.format(title, issue, 
-                                                             issue_url_prefix)
+                        line = '- {0} ([{1}]({2}{1}))'.format(title, issue, 
+                                                              issue_url_prefix)
+                        lines.append(line)
                     else:
-                        print '- {0} ({1})'.format(title, issue)
+                        lines.append('- {0} ({1})'.format(title, issue))
         else:
             if ('Merge branch' in title) or ('Merge pull' in title):
                 continue
 
-            if item['body']:
-                print '- {0}\n{1}'.format(title, item['body'].strip())
-            else:
-                print '- {0}'.format(title)
+        if item['body']:
+            lines.append('- {0}\n{1}'.format(title, item['body'].strip()))
+        else:
+            lines.append('- {0}'.format(title))
 
     if unassigned_issue_ids:
         unassigned_issue_ids = list(set(unassigned_issue_ids))
-        print '\nUnassigned Issue IDs'
+        lines.append('\nUnassigned Issue IDs')
         for issue in unassigned_issue_ids:
-            print '- {0}'.format(issue)
+            lines.append('- {0}'.format(issue))
+    return lines
 
 def git_log(from_, to_):
     '''
@@ -119,7 +129,8 @@ def main():
 
     logs = git_log(from_, to_)
     parsed_logs = parse_logs(logs, GIT_FIELDS)
-    print_logs(new_version, parsed_logs, issue_id_pattern, issue_url_prefix)
+    lines = print_lines(new_version, parsed_logs, issue_id_pattern, issue_url_prefix)
+    print '\n'.join(lines)
 
 if __name__ == '__main__':
     sys.exit(main())
