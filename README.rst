@@ -4,8 +4,8 @@ changelog
 .. image:: https://travis-ci.org/kirankoduru/changelog.svg
     :target: https://travis-ci.org/kirankoduru/changelog
 
-.. image:: https://coveralls.io/repos/kirankoduru/changelog/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/kirankoduru/changelog?branch=master
+.. image:: https://coveralls.io/repos/github/kirankoduru/changelog/badge.svg?branch=master
+  :target: https://coveralls.io/github/kirankoduru/changelog?branch=master
 
 Writing CHANGELOGs can be a grueling task but git logs can help you create a *suggested* CHANGELOG. The intention of this tool is to remove some of the grunt work involved checking diffs to write CHANGELOGs.
 
