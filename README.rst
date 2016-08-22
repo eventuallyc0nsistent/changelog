@@ -14,7 +14,7 @@ Installation
 ============
 Currently this project is not on pip. You could clone this repository and run the command::
 
-    python install changelog
+    python setup.py develop
 
 
 Usage
