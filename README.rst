@@ -46,8 +46,9 @@ License
 =======
 MIT (See LICENSE)
 
-.. note::
-   Again, this command line tool creates a suggested CHANGELOG. So use it to add more descriptions to the CHANGELOG once you have created it. Better advice can be found here_.
+Note
+====
+Again, this command line tool creates a suggested CHANGELOG. So use it to add more descriptions to the CHANGELOG once you have created it. Better advice can be found here_.
 
 .. _here: http://keepachangelog.com/en/0.3.0/
 
