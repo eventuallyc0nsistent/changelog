@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open('./README.rst') as readme:
+    long_description = readme.read()
+
 setup(
     name='changelog',
     url='https://github.com/kirankoduru/changelog',
@@ -24,5 +27,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-    ]
+    ],
+    long_description=long_description
 )

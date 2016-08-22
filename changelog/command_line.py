@@ -4,11 +4,24 @@ import argparse
 from datetime import datetime
 from subprocess import Popen, PIPE
 
+
+# fields to fetch from commit log
+# For format parameters refer: https://git-scm.com/docs/pretty-formats
+GIT_FIELDS = {
+    'id': '%H',
+    'author_name': '%an',
+    'author_email': '%ae',
+    'date': '%ad',
+    'subject': '%s',
+    'body': '%b'
+}
+
 def parse_logs(logs, fields):
     logs = logs.strip('\n\x1e').split("\x1e")
     logs = [row.strip().split("\x1f") for row in logs]
     logs = [dict(zip(fields.keys(), row)) for row in logs]
     return logs
+
 
 def print_logs(new_version, logs, issue_id_pattern, issue_url_prefix):
     unassigned_issue_ids = []
@@ -37,7 +50,11 @@ def print_logs(new_version, logs, issue_id_pattern, issue_url_prefix):
         else:
             if ('Merge branch' in title) or ('Merge pull' in title):
                 continue
-            print '- {0}'.format(title)
+
+            if item['body']:
+                print '- {0}\n{1}'.format(title, item['body'].strip())
+            else:
+                print '- {0}'.format(title)
 
     if unassigned_issue_ids:
         unassigned_issue_ids = list(set(unassigned_issue_ids))
@@ -45,23 +62,15 @@ def print_logs(new_version, logs, issue_id_pattern, issue_url_prefix):
         for issue in unassigned_issue_ids:
             print '- {0}'.format(issue)
 
-def run_command(from_, to, new_version, issue_id_pattern, issue_url_prefix):
-    # fields to fetch from commit log
-    # For format parameters refer: https://git-scm.com/docs/pretty-formats
-    fields = {
-        'id': '%H',
-        'author_name': '%an',
-        'author_email': '%ae',
-        'date': '%ad',
-        'subject': '%s',
-        'body': '%b'
-    }
-    format_str = '%x1f'.join(fields.values()) + '%x1e'
-    command = 'git log {0}...{1} --format="{2}"'.format(from_, to, format_str)
-    p = Popen(command, shell=True, stdout=PIPE)
-    (logs, _) = p.communicate()
-    logs = parse_logs(logs, fields)
-    print_logs(new_version, logs, issue_id_pattern, issue_url_prefix)
+def git_log(from_, to_):
+    '''
+    Run git log command and return the logs separated by special characters
+    '''
+    format_str = '%x1f'.join(GIT_FIELDS.values()) + '%x1e'
+    command = 'git log {0}...{1} --format="{2}"'.format(from_, to_, format_str)
+    process = Popen(command, shell=True, stdout=PIPE)
+    (logs, _) = process.communicate()
+    return logs
 
 def init_argparser():
     parser = argparse.ArgumentParser(
@@ -86,7 +95,7 @@ def init_argparser():
     parser.add_argument(
         '-i', '--issue',
         type=str,
-        help='Enter issue ID pattern. It can be a regex that you can look for'
+        help='Enter issue ID pattern. Should be a regex pattern to look for'
     )
     parser.add_argument(
         '-u', '--issue-url-prefix',
@@ -97,18 +106,20 @@ def init_argparser():
     return parser.parse_args()
 
 def main():
-    args = init_argparser()
-    from_ = args.start
-    to_ = args.end
-    new_version = args.version
-    issue_id_pattern = args.issue
-    issue_url_prefix = args.issue_url_prefix
+    parsed = init_argparser()
+    from_ = parsed.start
+    to_ = parsed.end
+    new_version = parsed.version
+    issue_id_pattern = parsed.issue
+    issue_url_prefix = parsed.issue_url_prefix
 
     # set defaults
     if not to_:
         to_ = 'master'
 
-    run_command(from_, to_, new_version, issue_id_pattern, issue_url_prefix)
+    logs = git_log(from_, to_)
+    parsed_logs = parse_logs(logs, GIT_FIELDS)
+    print_logs(new_version, parsed_logs, issue_id_pattern, issue_url_prefix)
 
 if __name__ == '__main__':
     sys.exit(main())
