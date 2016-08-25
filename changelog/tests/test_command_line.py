@@ -225,7 +225,7 @@ class TestCmdLine(TestCase):
                                 logs=self.logs,
                                 issue_id_pattern=None,
                                 issue_url_prefix=None)
-        expected = ['v1.0.0 (24 Aug 2016)', 
+        expected = ['v1.0.0 (%s)' % self.date, 
                     '--------------------', 
                     '- Log 5', 
                     '- Log 4', 
