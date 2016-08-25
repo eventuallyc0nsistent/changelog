@@ -23,7 +23,10 @@ def parse_logs(logs, fields):
     return logs
 
 
-def print_lines(new_version, logs, issue_id_pattern, issue_url_prefix):
+def get_print_lines(new_version, logs, issue_id_pattern, issue_url_prefix):
+    '''
+    Return a list of lines to print based on the `logs`
+    '''
     lines = []
     unassigned_issue_ids = []
     date_today = datetime.now().strftime('%d %b %Y')
@@ -115,6 +118,11 @@ def init_argparser():
     )
     return parser.parse_args()
 
+
+def print_lines(lines):
+    print '\n'.join(lines)
+
+
 def main():
     parsed = init_argparser()
     from_ = parsed.start
@@ -129,8 +137,8 @@ def main():
 
     logs = git_log(from_, to_)
     parsed_logs = parse_logs(logs, GIT_FIELDS)
-    lines = print_lines(new_version, parsed_logs, issue_id_pattern, issue_url_prefix)
-    print '\n'.join(lines)
+    lines = get_print_lines(new_version, parsed_logs, issue_id_pattern, issue_url_prefix)
+    print_lines(lines)
 
 if __name__ == '__main__':
     sys.exit(main())
