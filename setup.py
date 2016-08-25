@@ -4,7 +4,7 @@ with open('./README.rst') as readme:
     long_description = readme.read()
 
 setup(
-    name='changelog',
+    name='changelog-suggest',
     url='https://github.com/kirankoduru/changelog',
     version='0.1.0',
     license='MIT',

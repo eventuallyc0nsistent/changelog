@@ -1,5 +1,5 @@
-CHANGELOG
-=========
+CHANGELOG Suggest
+=================
 
 .. image:: https://travis-ci.org/kirankoduru/changelog.svg
     :target: https://travis-ci.org/kirankoduru/changelog
@@ -11,9 +11,9 @@ Writing CHANGELOGs can be a grueling task but git logs can help you create a *su
 
 Installation
 ============
-Currently this project is not on pip. You could clone this repository and run the command::
+You can install **changelog-suggest** through pip::
 
-    python setup.py develop
+    pip install changelog-suggest
 
 
 Usage
